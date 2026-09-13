@@ -1,7 +1,7 @@
 import { notesStore } from '../store/notes.js'
 import { authStore } from '../store/auth.js'
-import { effectiveTheme, toggleTheme } from '../data/theme.js'
-import { i18nStore, t, setLanguage, SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../data/i18n.js'
+import { effectiveTheme } from '../data/theme.js'
+import { i18nStore, t, SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../data/i18n.js'
 
 // dateLocales maps our language codes to the locale toLocaleDateString expects.
 const dateLocales = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', de: 'de-DE', fr: 'fr-FR' }
@@ -55,7 +55,7 @@ export default {
       </ul>
 
       <div class="sidebar-footer">
-        <select class="lang-select" :aria-label="t('Язык')" :value="i18nStore.language" @change="setLanguage($event.target.value)">
+        <select class="lang-select" :aria-label="t('Язык')" :value="i18nStore.language" @change="changeLanguage($event.target.value)">
           <option v-for="lang in languages" :key="lang" :value="lang">{{ languageLabels[lang] }}</option>
         </select>
         <span class="sidebar-user" :title="authStore.user?.username">{{ authStore.user?.username }}</span>
@@ -97,7 +97,9 @@ export default {
   },
   methods: {
     t,
-    setLanguage,
+    changeLanguage(language) {
+      authStore.changeLanguage(language)
+    },
     select(id) {
       notesStore.select(id)
     },
@@ -109,7 +111,7 @@ export default {
       notesStore.createNote()
     },
     toggleTheme() {
-      toggleTheme()
+      authStore.changeTheme(effectiveTheme() === 'dark' ? 'light' : 'dark')
     },
     logout() {
       authStore.logout()

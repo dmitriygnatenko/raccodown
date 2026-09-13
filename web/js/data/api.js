@@ -58,8 +58,8 @@ function toQueryString(params) {
 }
 
 export const authApi = {
-  async login(username, password) {
-    const { data } = await request('POST', '/api/v1/auth/login', { body: { username, password } })
+  async login(username, password, language) {
+    const { data } = await request('POST', '/api/v1/auth/login', { body: { username, password, language } })
     return data
   },
 
@@ -78,6 +78,20 @@ export const authApi = {
     const { data } = await request('PATCH', '/api/v1/auth/credentials', {
       body: { currentPassword, newUsername, newPassword },
     })
+    return data
+  },
+}
+
+export const settingsApi = {
+  async get() {
+    const { data } = await request('GET', '/api/v1/settings')
+    return data
+  },
+
+  // update overwrites the whole settings blob — the caller must pass both fields, echoing back
+  // whichever one it isn't changing (see authStore.changeLanguage/changeTheme).
+  async update(language, theme) {
+    const { data } = await request('PATCH', '/api/v1/settings', { body: { language, theme } })
     return data
   },
 }

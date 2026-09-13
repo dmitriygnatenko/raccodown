@@ -4,9 +4,10 @@
 // source string. A string missing from a table simply falls back to its Russian source text rather
 // than breaking. A handful of entries carry {placeholders} for runtime-interpolated values.
 //
-// Unlike raccounting, the choice isn't also synced server-side (per-user settings) — raccodown's
-// User entity doesn't carry settings, the same call this project already made for the theme
-// preference (see theme.js) — so, like theme, it's local to this browser only.
+// This module is just the local mechanism (translate + remember in this browser); for a signed-in
+// user the choice is also persisted server-side in User.Settings.Language, by analogy with
+// raccounting — see store/auth.js's login/changeLanguage/applySettings, which call setLanguage here
+// once the backend confirms it.
 import { reactive } from 'vue'
 
 export const SUPPORTED_LANGUAGES = ['ru', 'en', 'es', 'de', 'fr']
@@ -42,7 +43,7 @@ const translations = {
     Разделитель: 'Horizontal rule',
     'Пишите в Markdown…': 'Write in Markdown…',
     текст: 'text',
-    'Не удалось войти': 'Failed to log in',
+    'Не удалось войти. Проверьте имя пользователя и пароль.': 'Failed to log in. Check your username and password.',
     'Без названия': 'Untitled',
     Удалить: 'Delete',
     'Сохранение…': 'Saving…',
@@ -62,6 +63,7 @@ const translations = {
     'Выберите заметку слева или создайте новую.': 'Select a note on the left, or create a new one.',
     Логин: 'Username',
     Пароль: 'Password',
+    'Вход в аккаунт': 'Sign in',
     'Загрузка…': 'Loading…',
     'Ничего не найдено': 'Nothing found',
     Выйти: 'Log out',
@@ -88,7 +90,7 @@ const translations = {
     Разделитель: 'Línea horizontal',
     'Пишите в Markdown…': 'Escribe en Markdown…',
     текст: 'texto',
-    'Не удалось войти': 'No se pudo iniciar sesión',
+    'Не удалось войти. Проверьте имя пользователя и пароль.': 'No se pudo iniciar sesión. Comprueba tu usuario y contraseña.',
     'Без названия': 'Sin título',
     Удалить: 'Eliminar',
     'Сохранение…': 'Guardando…',
@@ -108,6 +110,7 @@ const translations = {
     'Выберите заметку слева или создайте новую.': 'Selecciona una nota a la izquierda o crea una nueva.',
     Логин: 'Usuario',
     Пароль: 'Contraseña',
+    'Вход в аккаунт': 'Iniciar sesión',
     'Загрузка…': 'Cargando…',
     'Ничего не найдено': 'No se encontró nada',
     Выйти: 'Cerrar sesión',
@@ -134,7 +137,7 @@ const translations = {
     Разделитель: 'Trennlinie',
     'Пишите в Markdown…': 'Schreib in Markdown…',
     текст: 'Text',
-    'Не удалось войти': 'Anmeldung fehlgeschlagen',
+    'Не удалось войти. Проверьте имя пользователя и пароль.': 'Anmeldung fehlgeschlagen. Prüfe Benutzername und Passwort.',
     'Без названия': 'Ohne Titel',
     Удалить: 'Löschen',
     'Сохранение…': 'Speichern…',
@@ -154,6 +157,7 @@ const translations = {
     'Выберите заметку слева или создайте новую.': 'Wähle links eine Notiz aus oder erstelle eine neue.',
     Логин: 'Benutzername',
     Пароль: 'Passwort',
+    'Вход в аккаунт': 'Anmelden',
     'Загрузка…': 'Wird geladen…',
     'Ничего не найдено': 'Nichts gefunden',
     Выйти: 'Abmelden',
@@ -180,7 +184,7 @@ const translations = {
     Разделитель: 'Ligne horizontale',
     'Пишите в Markdown…': 'Écrivez en Markdown…',
     текст: 'texte',
-    'Не удалось войти': 'Échec de la connexion',
+    'Не удалось войти. Проверьте имя пользователя и пароль.': 'Échec de la connexion. Vérifiez votre identifiant et votre mot de passe.',
     'Без названия': 'Sans titre',
     Удалить: 'Supprimer',
     'Сохранение…': 'Enregistrement…',
@@ -200,6 +204,7 @@ const translations = {
     'Выберите заметку слева или создайте новую.': 'Sélectionnez une note à gauche ou créez-en une nouvelle.',
     Логин: 'Identifiant',
     Пароль: 'Mot de passe',
+    'Вход в аккаунт': 'Connexion',
     'Загрузка…': 'Chargement…',
     'Ничего не найдено': 'Aucun résultat',
     Выйти: 'Se déconnecter',
@@ -219,8 +224,12 @@ function getStoredLanguage() {
 }
 
 function detectBrowserLanguage() {
-  const lang = (navigator.language || '').slice(0, 2).toLowerCase()
-  return SUPPORTED_LANGUAGES.includes(lang) ? lang : null
+  const langs = navigator.languages || [navigator.language || DEFAULT_LANGUAGE]
+  for (const lang of langs) {
+    const code = (lang || '').slice(0, 2).toLowerCase()
+    if (SUPPORTED_LANGUAGES.includes(code)) return code
+  }
+  return null
 }
 
 export const i18nStore = reactive({ language: getStoredLanguage() ?? detectBrowserLanguage() ?? DEFAULT_LANGUAGE })

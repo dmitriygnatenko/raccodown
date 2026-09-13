@@ -2,6 +2,10 @@
 // css/style.css: with no stored preference the app just follows the OS (via the `[data-theme]`
 // guards in the CSS — see the top of style.css), and picking a theme here pins it, overriding the
 // OS, until cleared.
+//
+// This module is just the local mechanism (apply + remember in this browser); for a signed-in user
+// it's also persisted server-side in User.Settings.Theme, by analogy with raccounting — see
+// store/auth.js's changeTheme/applySettings, which call setTheme here once the backend confirms it.
 import { reactive, ref } from 'vue'
 
 const STORAGE_KEY = 'raccodown.theme'
@@ -44,10 +48,6 @@ export function setTheme(theme) {
     // Private browsing / storage disabled — the choice just won't survive a reload.
   }
   applyTheme(theme)
-}
-
-export function toggleTheme() {
-  setTheme(effectiveTheme() === 'dark' ? 'light' : 'dark')
 }
 
 // Reflect whatever the inline snippet in index.html's <head> already applied (it runs before this
