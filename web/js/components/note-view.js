@@ -1,4 +1,5 @@
 import { notesStore } from '../store/notes.js'
+import { t } from '../data/i18n.js'
 import Editor from './editor.js'
 import Preview from './preview.js'
 
@@ -7,22 +8,22 @@ export default {
   template: `
     <section class="workspace" v-if="note">
       <header class="toolbar">
-        <input v-model="title" class="title-input" placeholder="Без названия" />
+        <input v-model="title" class="title-input" :placeholder="t('Без названия')" />
         <div class="toolbar-actions">
           <span class="save-state">{{ saveStateLabel }}</span>
           <div class="mode-switch">
-            <button :class="{ active: mode === 'edit' }" @click="mode = 'edit'">Правка</button>
-            <button :class="{ active: mode === 'split' }" @click="mode = 'split'">Оба</button>
-            <button :class="{ active: mode === 'preview' }" @click="mode = 'preview'">Превью</button>
+            <button :class="{ active: mode === 'edit' }" @click="mode = 'edit'">{{ t('Правка') }}</button>
+            <button :class="{ active: mode === 'split' }" @click="mode = 'split'">{{ t('Оба') }}</button>
+            <button :class="{ active: mode === 'preview' }" @click="mode = 'preview'">{{ t('Превью') }}</button>
           </div>
-          <button class="icon-btn" title="Удалить" @click="remove">🗑</button>
+          <button class="icon-btn" :title="t('Удалить')" @click="remove">🗑</button>
         </div>
       </header>
 
       <div v-if="store.conflict" class="conflict-banner">
-        Заметка была изменена в другом месте.
-        <button @click="keepMine">Оставить мою версию</button>
-        <button @click="takeTheirs">Взять чужую версию</button>
+        {{ t('Заметка была изменена в другом месте.') }}
+        <button @click="keepMine">{{ t('Оставить мою версию') }}</button>
+        <button @click="takeTheirs">{{ t('Взять чужую версию') }}</button>
       </div>
 
       <div class="panes" :class="mode">
@@ -35,19 +36,19 @@ export default {
       </div>
 
       <footer class="status-bar">
-        <span>{{ wordCount }} слов</span>
-        <span v-if="note.tags.length">{{ note.tags.map((t) => '#' + t).join(' ') }}</span>
+        <span>{{ t('{n} слов', { n: wordCount }) }}</span>
+        <span v-if="note.tags.length">{{ note.tags.map((tag) => '#' + tag).join(' ') }}</span>
       </footer>
     </section>
 
     <section v-else class="empty-state">
-      <p>Выберите заметку слева или создайте новую.</p>
+      <p>{{ t('Выберите заметку слева или создайте новую.') }}</p>
     </section>
   `,
   data() {
     return {
       store: notesStore.state,
-      mode: 'split',
+      mode: 'preview',
       title: '',
       content: '',
       saveState: 'idle',
@@ -67,8 +68,8 @@ export default {
       return notesStore.active()
     },
     saveStateLabel() {
-      if (this.saveState === 'saving') return 'Сохранение…'
-      if (this.saveState === 'saved') return 'Сохранено'
+      if (this.saveState === 'saving') return t('Сохранение…')
+      if (this.saveState === 'saved') return t('Сохранено')
       return ''
     },
     wordCount() {
@@ -96,6 +97,7 @@ export default {
     this.$watch(() => [this.title, this.content], () => this.maybeScheduleSave())
   },
   methods: {
+    t,
     maybeScheduleSave() {
       if (this.suppressNextSave) {
         this.suppressNextSave = false
@@ -120,7 +122,7 @@ export default {
       this.store.conflict = null
     },
     async remove() {
-      if (!this.note || !confirm(`Удалить заметку «${this.note.title}»?`)) return
+      if (!this.note || !confirm(t('Удалить заметку «{title}»?', { title: this.note.title }))) return
       await notesStore.removeActive()
     },
   },

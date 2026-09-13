@@ -3,6 +3,7 @@
 // helpers built on its core transaction API (state.changeByRange for multi-selection wraps, plain
 // view.dispatch({changes}) for line-prefix toggles).
 import { EditorSelection } from '@codemirror/state'
+import { t } from './i18n.js'
 
 // wrapInline wraps every selection range in `before`/`after` (e.g. '**' for bold), or removes them
 // if the selection is already wrapped — so clicking Bold twice on the same text un-bolds it. With
@@ -91,7 +92,7 @@ export function numberedList(view) {
 export function insertLink(view) {
   const { state } = view
   const { from, to } = state.selection.main
-  const text = state.sliceDoc(from, to) || 'текст'
+  const text = state.sliceDoc(from, to) || t('текст')
   const insert = `[${text}](url)`
   const urlStart = from + text.length + 3
 

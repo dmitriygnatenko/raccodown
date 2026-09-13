@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { notesApi, ConflictError } from '../data/api.js'
+import { t } from '../data/i18n.js'
 
 function createNotesStore() {
   const state = reactive({
@@ -41,9 +42,18 @@ function createNotesStore() {
   }
 
   async function createNote() {
-    const note = await notesApi.create('Новая заметка', '')
+    const note = await notesApi.create(t('Новая заметка'), '')
     state.notes.unshift(note)
     state.activeId = note.id
+    return note
+  }
+
+  // importNote creates a note from imported file content without changing the current selection —
+  // callers importing several files in a row select whichever one they want active once the whole
+  // batch is done, rather than flickering through each one as it lands.
+  async function importNote(title, content) {
+    const note = await notesApi.create(title, content)
+    state.notes.unshift(note)
     return note
   }
 
@@ -73,7 +83,7 @@ function createNotesStore() {
     state.activeId = state.notes[0]?.id ?? null
   }
 
-  return { state, active, fetchNotes, fetchTags, select, createNote, saveActive, removeActive }
+  return { state, active, fetchNotes, fetchTags, select, createNote, importNote, saveActive, removeActive }
 }
 
 export const notesStore = createNotesStore()

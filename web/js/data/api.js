@@ -57,6 +57,31 @@ function toQueryString(params) {
   return qs ? `?${qs}` : ''
 }
 
+export const authApi = {
+  async login(username, password) {
+    const { data } = await request('POST', '/api/v1/auth/login', { body: { username, password } })
+    return data
+  },
+
+  async logout() {
+    await request('POST', '/api/v1/auth/logout')
+  },
+
+  // me throws ApiError with status 401 if there's no valid session — the caller (authStore) treats
+  // that as "show the login screen" rather than an error to surface.
+  async me() {
+    const { data } = await request('GET', '/api/v1/auth/me')
+    return data
+  },
+
+  async updateCredentials(currentPassword, newUsername, newPassword) {
+    const { data } = await request('PATCH', '/api/v1/auth/credentials', {
+      body: { currentPassword, newUsername, newPassword },
+    })
+    return data
+  },
+}
+
 export const notesApi = {
   async list(params = {}) {
     const { data } = await request('GET', `/api/v1/notes${toQueryString(params)}`)

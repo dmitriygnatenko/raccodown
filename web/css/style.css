@@ -15,8 +15,10 @@
   --warning-text: #8a5a1a;
 }
 
+/* Dark theme: applied when the OS prefers dark and the user hasn't pinned "light" (see
+   js/data/theme.js), or unconditionally once they've pinned "dark". */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --surface-0: #1c1a17;
     --surface-1: #221f1b;
     --surface-2: #2a2621;
@@ -27,7 +29,26 @@
     --danger: #e57368;
     --warning-bg: #3a2c17;
     --warning-text: #e8b874;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --surface-0: #1c1a17;
+  --surface-1: #221f1b;
+  --surface-2: #2a2621;
+  --border: #3a352d;
+  --text: #ece7de;
+  --text-dim: #9a9284;
+  --accent: #d98a4f;
+  --danger: #e57368;
+  --warning-bg: #3a2c17;
+  --warning-text: #e8b874;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 * {
@@ -85,6 +106,12 @@ button:focus {
   font-weight: 600;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .icon-btn {
   border: none;
   background: var(--accent);
@@ -95,6 +122,43 @@ button:focus {
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
+}
+
+.icon-btn-ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.icon-btn-ghost:hover {
+  background: var(--surface-2);
+}
+
+.sidebar-toolbar {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 1rem 0.6rem;
+}
+
+.text-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.text-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .search {
@@ -236,6 +300,7 @@ button:focus {
   padding: 0.3rem 0.6rem;
   font-size: 0.8rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .mode-switch button.active {
@@ -393,4 +458,118 @@ button:focus {
 
 .markdown-preview code {
   font-family: var(--font-mono);
+}
+
+/* Boot screen (app.js) — shown only for the instant it takes /api/v1/auth/me to answer */
+
+.boot-screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+/* Login screen (login-view.js) */
+
+.login-screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-1);
+}
+
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 20rem;
+  padding: 2rem;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.login-brand {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.login-field input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.login-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.login-submit {
+  border: none;
+  background: var(--accent);
+  color: white;
+  padding: 0.55rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.login-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Language selector — used on the login screen and in the sidebar footer */
+
+.lang-select,
+.login-language {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 0.3rem 0.4rem;
+}
+
+.login-language {
+  margin-top: 0.2rem;
+  align-self: center;
+}
+
+/* Sidebar footer (note-list.js) */
+
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--border);
+  flex: none;
+}
+
+.sidebar-user {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -1,0 +1,248 @@
+// Internationalization, by analogy with raccounting's: Russian is the language the frontend is
+// actually written in — every UI string is a Russian literal at its call site, passed through t()
+// — and the other four languages are exact-match translation tables below, keyed by that Russian
+// source string. A string missing from a table simply falls back to its Russian source text rather
+// than breaking. A handful of entries carry {placeholders} for runtime-interpolated values.
+//
+// Unlike raccounting, the choice isn't also synced server-side (per-user settings) — raccodown's
+// User entity doesn't carry settings, the same call this project already made for the theme
+// preference (see theme.js) — so, like theme, it's local to this browser only.
+import { reactive } from 'vue'
+
+export const SUPPORTED_LANGUAGES = ['ru', 'en', 'es', 'de', 'fr']
+
+export const LANGUAGE_LABELS = {
+  ru: 'Русский',
+  en: 'English',
+  es: 'Español',
+  de: 'Deutsch',
+  fr: 'Français',
+}
+
+const STORAGE_KEY = 'raccodown.language'
+const DEFAULT_LANGUAGE = 'ru'
+
+const translations = {
+  en: {
+    'Вход…': 'Signing in…',
+    Войти: 'Log in',
+    Правка: 'Edit',
+    Оба: 'Both',
+    Превью: 'Preview',
+    Заголовок: 'Heading',
+    'Жирный (Ctrl/Cmd+B)': 'Bold (Ctrl/Cmd+B)',
+    'Курсив (Ctrl/Cmd+I)': 'Italic (Ctrl/Cmd+I)',
+    Зачёркнутый: 'Strikethrough',
+    Код: 'Code',
+    'Блок кода': 'Code block',
+    Ссылка: 'Link',
+    Цитата: 'Quote',
+    Список: 'List',
+    'Нумерованный список': 'Numbered list',
+    Разделитель: 'Horizontal rule',
+    'Пишите в Markdown…': 'Write in Markdown…',
+    текст: 'text',
+    'Не удалось войти': 'Failed to log in',
+    'Без названия': 'Untitled',
+    Удалить: 'Delete',
+    'Сохранение…': 'Saving…',
+    Сохранено: 'Saved',
+    'Удалить заметку «{title}»?': 'Delete note "{title}"?',
+    'Новая заметка': 'New note',
+    'Импортировать .md/.txt файлы как заметки': 'Import .md/.txt files as notes',
+    'Скачать все заметки одним zip-архивом': 'Download all notes as one zip archive',
+    'Поиск заметок…': 'Search notes…',
+    'Светлая тема': 'Light theme',
+    'Тёмная тема': 'Dark theme',
+    'Не удалось импортировать файл': 'Failed to import file',
+    'Заметка была изменена в другом месте.': 'The note was changed elsewhere.',
+    'Оставить мою версию': 'Keep my version',
+    'Взять чужую версию': 'Take the other version',
+    '{n} слов': '{n} words',
+    'Выберите заметку слева или создайте новую.': 'Select a note on the left, or create a new one.',
+    Логин: 'Username',
+    Пароль: 'Password',
+    'Загрузка…': 'Loading…',
+    'Ничего не найдено': 'Nothing found',
+    Выйти: 'Log out',
+    Импорт: 'Import',
+    Экспорт: 'Export',
+    Язык: 'Language',
+  },
+  es: {
+    'Вход…': 'Iniciando sesión…',
+    Войти: 'Iniciar sesión',
+    Правка: 'Editar',
+    Оба: 'Ambos',
+    Превью: 'Vista previa',
+    Заголовок: 'Encabezado',
+    'Жирный (Ctrl/Cmd+B)': 'Negrita (Ctrl/Cmd+B)',
+    'Курсив (Ctrl/Cmd+I)': 'Cursiva (Ctrl/Cmd+I)',
+    Зачёркнутый: 'Tachado',
+    Код: 'Código',
+    'Блок кода': 'Bloque de código',
+    Ссылка: 'Enlace',
+    Цитата: 'Cita',
+    Список: 'Lista',
+    'Нумерованный список': 'Lista numerada',
+    Разделитель: 'Línea horizontal',
+    'Пишите в Markdown…': 'Escribe en Markdown…',
+    текст: 'texto',
+    'Не удалось войти': 'No se pudo iniciar sesión',
+    'Без названия': 'Sin título',
+    Удалить: 'Eliminar',
+    'Сохранение…': 'Guardando…',
+    Сохранено: 'Guardado',
+    'Удалить заметку «{title}»?': '¿Eliminar la nota «{title}»?',
+    'Новая заметка': 'Nueva nota',
+    'Импортировать .md/.txt файлы как заметки': 'Importar archivos .md/.txt como notas',
+    'Скачать все заметки одним zip-архивом': 'Descargar todas las notas en un archivo zip',
+    'Поиск заметок…': 'Buscar notas…',
+    'Светлая тема': 'Tema claro',
+    'Тёмная тема': 'Tema oscuro',
+    'Не удалось импортировать файл': 'No se pudo importar el archivo',
+    'Заметка была изменена в другом месте.': 'La nota fue modificada en otro lugar.',
+    'Оставить мою версию': 'Conservar mi versión',
+    'Взять чужую версию': 'Usar la otra versión',
+    '{n} слов': '{n} palabras',
+    'Выберите заметку слева или создайте новую.': 'Selecciona una nota a la izquierda o crea una nueva.',
+    Логин: 'Usuario',
+    Пароль: 'Contraseña',
+    'Загрузка…': 'Cargando…',
+    'Ничего не найдено': 'No se encontró nada',
+    Выйти: 'Cerrar sesión',
+    Импорт: 'Importar',
+    Экспорт: 'Exportar',
+    Язык: 'Idioma',
+  },
+  de: {
+    'Вход…': 'Anmeldung…',
+    Войти: 'Anmelden',
+    Правка: 'Bearbeiten',
+    Оба: 'Beide',
+    Превью: 'Vorschau',
+    Заголовок: 'Überschrift',
+    'Жирный (Ctrl/Cmd+B)': 'Fett (Strg/Cmd+B)',
+    'Курсив (Ctrl/Cmd+I)': 'Kursiv (Strg/Cmd+I)',
+    Зачёркнутый: 'Durchgestrichen',
+    Код: 'Code',
+    'Блок кода': 'Codeblock',
+    Ссылка: 'Link',
+    Цитата: 'Zitat',
+    Список: 'Liste',
+    'Нумерованный список': 'Nummerierte Liste',
+    Разделитель: 'Trennlinie',
+    'Пишите в Markdown…': 'Schreib in Markdown…',
+    текст: 'Text',
+    'Не удалось войти': 'Anmeldung fehlgeschlagen',
+    'Без названия': 'Ohne Titel',
+    Удалить: 'Löschen',
+    'Сохранение…': 'Speichern…',
+    Сохранено: 'Gespeichert',
+    'Удалить заметку «{title}»?': 'Notiz „{title}“ löschen?',
+    'Новая заметка': 'Neue Notiz',
+    'Импортировать .md/.txt файлы как заметки': '.md/.txt-Dateien als Notizen importieren',
+    'Скачать все заметки одним zip-архивом': 'Alle Notizen als ein ZIP-Archiv herunterladen',
+    'Поиск заметок…': 'Notizen durchsuchen…',
+    'Светлая тема': 'Helles Design',
+    'Тёмная тема': 'Dunkles Design',
+    'Не удалось импортировать файл': 'Datei konnte nicht importiert werden',
+    'Заметка была изменена в другом месте.': 'Die Notiz wurde an anderer Stelle geändert.',
+    'Оставить мою версию': 'Meine Version behalten',
+    'Взять чужую версию': 'Andere Version übernehmen',
+    '{n} слов': '{n} Wörter',
+    'Выберите заметку слева или создайте новую.': 'Wähle links eine Notiz aus oder erstelle eine neue.',
+    Логин: 'Benutzername',
+    Пароль: 'Passwort',
+    'Загрузка…': 'Wird geladen…',
+    'Ничего не найдено': 'Nichts gefunden',
+    Выйти: 'Abmelden',
+    Импорт: 'Import',
+    Экспорт: 'Export',
+    Язык: 'Sprache',
+  },
+  fr: {
+    'Вход…': 'Connexion…',
+    Войти: 'Se connecter',
+    Правка: 'Modifier',
+    Оба: 'Les deux',
+    Превью: 'Aperçu',
+    Заголовок: 'Titre',
+    'Жирный (Ctrl/Cmd+B)': 'Gras (Ctrl/Cmd+B)',
+    'Курсив (Ctrl/Cmd+I)': 'Italique (Ctrl/Cmd+I)',
+    Зачёркнутый: 'Barré',
+    Код: 'Code',
+    'Блок кода': 'Bloc de code',
+    Ссылка: 'Lien',
+    Цитата: 'Citation',
+    Список: 'Liste',
+    'Нумерованный список': 'Liste numérotée',
+    Разделитель: 'Ligne horizontale',
+    'Пишите в Markdown…': 'Écrivez en Markdown…',
+    текст: 'texte',
+    'Не удалось войти': 'Échec de la connexion',
+    'Без названия': 'Sans titre',
+    Удалить: 'Supprimer',
+    'Сохранение…': 'Enregistrement…',
+    Сохранено: 'Enregistré',
+    'Удалить заметку «{title}»?': 'Supprimer la note « {title} » ?',
+    'Новая заметка': 'Nouvelle note',
+    'Импортировать .md/.txt файлы как заметки': 'Importer des fichiers .md/.txt comme notes',
+    'Скачать все заметки одним zip-архивом': 'Télécharger toutes les notes dans une archive zip',
+    'Поиск заметок…': 'Rechercher des notes…',
+    'Светлая тема': 'Thème clair',
+    'Тёмная тема': 'Thème sombre',
+    'Не удалось импортировать файл': "Échec de l'importation du fichier",
+    'Заметка была изменена в другом месте.': 'La note a été modifiée ailleurs.',
+    'Оставить мою версию': 'Garder ma version',
+    'Взять чужую версию': "Prendre l'autre version",
+    '{n} слов': '{n} mots',
+    'Выберите заметку слева или создайте новую.': 'Sélectionnez une note à gauche ou créez-en une nouvelle.',
+    Логин: 'Identifiant',
+    Пароль: 'Mot de passe',
+    'Загрузка…': 'Chargement…',
+    'Ничего не найдено': 'Aucun résultat',
+    Выйти: 'Se déconnecter',
+    Импорт: 'Importer',
+    Экспорт: 'Exporter',
+    Язык: 'Langue',
+  },
+}
+
+function getStoredLanguage() {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY)
+    return SUPPORTED_LANGUAGES.includes(v) ? v : null
+  } catch {
+    return null
+  }
+}
+
+function detectBrowserLanguage() {
+  const lang = (navigator.language || '').slice(0, 2).toLowerCase()
+  return SUPPORTED_LANGUAGES.includes(lang) ? lang : null
+}
+
+export const i18nStore = reactive({ language: getStoredLanguage() ?? detectBrowserLanguage() ?? DEFAULT_LANGUAGE })
+
+export function setLanguage(lang) {
+  if (!SUPPORTED_LANGUAGES.includes(lang)) return
+
+  i18nStore.language = lang
+  try {
+    localStorage.setItem(STORAGE_KEY, lang)
+  } catch {
+    // Private browsing / storage disabled — the choice just won't survive a reload.
+  }
+}
+
+// t translates a Russian source string into the current language, falling back to the Russian text
+// itself if there's no entry for it (missing key) or the current language is Russian. params fills
+// in any {placeholder} the string carries, in either language.
+export function t(text, params) {
+  const translated = i18nStore.language === 'ru' ? text : (translations[i18nStore.language]?.[text] ?? text)
+
+  if (!params) return translated
+
+  return Object.entries(params).reduce((s, [key, value]) => s.replaceAll(`{${key}}`, value), translated)
+}

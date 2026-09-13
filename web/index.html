@@ -6,21 +6,44 @@
   <title>Raccodown</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 font-size=%2280%22><text y=%22.9em%22>%F0%9F%A6%9D</text></svg>" />
 
+  <!-- Applies a saved theme override before first paint, so there's no flash of the wrong theme
+       while js/app.js (a module script, and so deferred) loads. js/data/theme.js is the source of
+       truth after that — this just has to agree with it on the storage key and valid values. -->
+  <script>
+    try {
+      var t = localStorage.getItem('raccodown.theme')
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+    } catch (e) {}
+  </script>
+
   <link rel="stylesheet" href="css/style.css?v=1" />
+
+  <!-- Every third-party package is vendored under js/vendor/ (see js/vendor/README.md) rather than
+       fetched from a CDN at runtime — self-hosted means it should keep working with no outbound
+       internet access at all, not just no build step. The import map just wires bare specifiers
+       (used throughout js/) to those local files.
+
+       The @codemirror/* entries are each their own file, individually bundled with esbuild but with
+       imports of every OTHER @codemirror/* package left external (--external:@codemirror/*) — so
+       they all resolve back through this same import map to the same shared instances, exactly as
+       they would if @codemirror/state (etc.) were one CDN URL requested from multiple packages.
+       Bundling them together into one file instead would each carry their own separate copy of
+       @codemirror/state, and CodeMirror's extension system needs everyone using the literal same
+       one. -->
   <script type="importmap">
     {
       "imports": {
-        "vue": "https://unpkg.com/vue@3.5.42/dist/vue.esm-browser.prod.js",
+        "vue": "/js/vendor/vue.esm-browser.prod.js",
 
-        "markdown-it": "https://esm.sh/markdown-it@15.0.2",
+        "markdown-it": "/js/vendor/markdown-it.js",
 
-        "@codemirror/state": "https://esm.sh/@codemirror/state@6.7.4",
-        "@codemirror/view": "https://esm.sh/@codemirror/view@6.43.11",
-        "@codemirror/commands": "https://esm.sh/@codemirror/commands@6.11.0",
-        "@codemirror/language": "https://esm.sh/@codemirror/language@6.12.4",
-        "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown@6.5.2",
-        "@codemirror/autocomplete": "https://esm.sh/@codemirror/autocomplete@6.20.3",
-        "@codemirror/search": "https://esm.sh/@codemirror/search@6.7.2"
+        "@codemirror/state": "/js/vendor/cm-state.js",
+        "@codemirror/view": "/js/vendor/cm-view.js",
+        "@codemirror/commands": "/js/vendor/cm-commands.js",
+        "@codemirror/language": "/js/vendor/cm-language.js",
+        "@codemirror/lang-markdown": "/js/vendor/cm-lang-markdown.js",
+        "@codemirror/autocomplete": "/js/vendor/cm-autocomplete.js",
+        "@codemirror/search": "/js/vendor/cm-search.js"
       }
     }
   </script>
