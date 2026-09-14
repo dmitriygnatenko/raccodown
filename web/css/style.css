@@ -274,6 +274,26 @@ button:focus-visible {
   min-width: 0;
 }
 
+/* Only shown on narrow screens (see the responsive layout section below), which show either the
+   note list or the open note, never both — this is how you get back to the list. */
+.back-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: var(--surface-2);
+}
+
 .toolbar-actions {
   display: flex;
   align-items: center;
@@ -782,4 +802,75 @@ button:focus-visible {
 
 .modal-danger:hover {
   background: #b91c1c;
+}
+
+/* Responsive layout — phones and narrow/portrait tablets.
+   Below 768px there isn't room for the sidebar and the open note side by side, so .app-shell shows
+   one full-width pane at a time: the note list, or the open note (with a .back-btn to return),
+   toggled by app.js's `note-open` class, which mirrors whether a note is currently selected. */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  .app-shell.note-open .sidebar {
+    display: none;
+  }
+
+  .app-shell:not(.note-open) .workspace,
+  .app-shell:not(.note-open) .empty-state {
+    display: none;
+  }
+
+  .back-btn {
+    display: flex;
+  }
+
+  /* Split ("Оба") mode stacks the editor above the preview instead of side by side — at this width
+     two side-by-side columns would be too narrow to write or read in. */
+  .panes.split {
+    flex-direction: column;
+  }
+
+  .panes.split .pane {
+    flex: 1 1 50%;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .panes.split .editor-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* The toolbar's title and mode-switch/save-state group no longer fit on one line next to the
+     back button — let the second group wrap onto its own row instead of squeezing everything down
+     to illegible widths. */
+  .toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  .toolbar-actions {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  /* The formatting toolbar's buttons don't need to wrap (which would eat vertical space on an
+     already-short mobile screen) — they scroll horizontally instead, same as a native app's
+     accessory toolbar. */
+  .cm-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Touch targets: a mouse can hover to reveal .note-delete, but a touch screen can't — on any
+   hover-incapable pointer (phones, tablets, and touchscreen laptops alike) it stays visible so it's
+   actually reachable, regardless of viewport width. */
+@media (hover: none) {
+  .note-delete {
+    opacity: 1;
+  }
 }
