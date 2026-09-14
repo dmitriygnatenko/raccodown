@@ -13,17 +13,15 @@ export default {
   template: `
     <aside class="sidebar">
       <div class="sidebar-header">
-        <span class="brand">🦝 Raccodown</span>
-        <button class="icon-btn" :title="t('Новая заметка')" @click="createNote">
+        <button class="icon-btn" :title="t('Добавить заметку')" @click="createNote">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2Z" />
             <path d="M14 2v6h6" />
             <path d="M12 12v6M9 15h6" />
           </svg>
         </button>
+        <input v-model="query" class="search" type="search" :placeholder="t('Поиск заметок…')" />
       </div>
-
-      <input v-model="query" class="search" type="search" :placeholder="t('Поиск заметок…')" />
 
       <div v-if="store.tags.length" class="tag-row">
         <button
@@ -33,7 +31,7 @@ export default {
           :class="{ active: activeTag === tc.tag }"
           @click="toggleTag(tc.tag)"
         >
-          #{{ tc.tag }} <span class="count">{{ tc.count }}</span>
+          #{{ tc.tag }}
         </button>
       </div>
 

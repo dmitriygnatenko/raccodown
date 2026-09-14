@@ -72,6 +72,7 @@ function createNotesStore() {
       const updated = await notesApi.update(note.id, title, content, note.checksum)
       const idx = state.notes.findIndex((n) => n.id === note.id)
       if (idx !== -1) state.notes[idx] = updated
+      await fetchTags()
     } catch (err) {
       if (err instanceof ConflictError) {
         state.conflict = err.current
