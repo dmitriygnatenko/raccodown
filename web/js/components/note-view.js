@@ -16,7 +16,6 @@ export default {
             <button :class="{ active: mode === 'split' }" @click="mode = 'split'">{{ t('Оба') }}</button>
             <button :class="{ active: mode === 'preview' }" @click="mode = 'preview'">{{ t('Превью') }}</button>
           </div>
-          <button class="icon-btn" :title="t('Удалить')" @click="remove">🗑</button>
         </div>
       </header>
 
@@ -87,6 +86,13 @@ export default {
         this.title = note?.title ?? ''
         this.content = note?.content ?? ''
         this.saveState = 'idle'
+
+        // A freshly created blank note is more useful to write and preview side by side than in
+        // whatever mode was last showing — see notesStore.createNote, which sets this marker.
+        if (note && note.id === this.store.justCreatedId) {
+          this.mode = 'split'
+          this.store.justCreatedId = null
+        }
       },
     },
   },
@@ -120,10 +126,6 @@ export default {
       this.title = this.store.conflict.title
       this.content = this.store.conflict.content
       this.store.conflict = null
-    },
-    async remove() {
-      if (!this.note || !confirm(t('Удалить заметку «{title}»?', { title: this.note.title }))) return
-      await notesStore.removeActive()
     },
   },
 }

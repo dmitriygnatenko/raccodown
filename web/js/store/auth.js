@@ -79,7 +79,26 @@ function createAuthStore() {
     applySettings({ settings })
   }
 
-  return { state, isAuthenticated, checkSession, login, logout, changeLanguage, changeTheme }
+  // changeCredentials changes the signed-in user's username and/or password, after confirming their
+  // current password — newUsername/newPassword are optional, a blank one leaves that field
+  // unchanged (see updatecredentials.UseCase in the Go backend). Unlike login's failure message,
+  // errors here are shown to the caller verbatim: this is a form the user is actively filling in,
+  // not a login attempt where "wrong password" vs. "wrong username" shouldn't be distinguishable.
+  async function changeCredentials(currentPassword, newUsername, newPassword) {
+    state.user = await authApi.updateCredentials(currentPassword, newUsername, newPassword)
+    return state.user
+  }
+
+  return {
+    state,
+    isAuthenticated,
+    checkSession,
+    login,
+    logout,
+    changeLanguage,
+    changeTheme,
+    changeCredentials,
+  }
 }
 
 export const authStore = createAuthStore()

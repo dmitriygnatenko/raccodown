@@ -76,6 +76,11 @@ input {
   font-family: inherit;
 }
 
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 input:focus,
 button:focus {
   outline: 2px solid var(--accent);
@@ -109,13 +114,10 @@ button:focus {
   font-weight: 600;
 }
 
-.header-actions {
+.icon-btn {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-}
-
-.icon-btn {
+  justify-content: center;
   border: none;
   background: var(--accent);
   color: white;
@@ -125,43 +127,6 @@ button:focus {
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-}
-
-.icon-btn-ghost {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  line-height: 1;
-}
-
-.icon-btn-ghost:hover {
-  background: var(--surface-2);
-}
-
-.sidebar-toolbar {
-  display: flex;
-  gap: 0.4rem;
-  padding: 0 1rem 0.6rem;
-}
-
-.text-btn {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-dim);
-  border-radius: 6px;
-  padding: 0.25rem 0.55rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
-.text-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
 }
 
 .search {
@@ -219,6 +184,9 @@ button:focus {
 }
 
 .note-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.6rem 1rem;
   cursor: pointer;
   border-left: 3px solid transparent;
@@ -233,6 +201,11 @@ button:focus {
   border-left-color: var(--accent);
 }
 
+.note-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .note-title {
   font-size: 0.9rem;
   font-weight: 500;
@@ -245,6 +218,32 @@ button:focus {
   font-size: 0.75rem;
   color: var(--text-dim);
   margin-top: 0.15rem;
+}
+
+.note-delete {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.note-item:hover .note-delete,
+.note-delete:focus-visible {
+  opacity: 1;
+}
+
+.note-delete:hover {
+  background: var(--surface-0);
+  color: var(--danger);
 }
 
 /* Workspace (note-view.js) */
@@ -300,8 +299,8 @@ button:focus {
   border: none;
   background: transparent;
   color: inherit;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -571,34 +570,178 @@ button:focus {
   cursor: default;
 }
 
-/* Language selector — sidebar footer only, see note-list.js */
-
-.lang-select {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 0.75rem;
-  padding: 0.3rem 0.4rem;
-}
-
-/* Sidebar footer (note-list.js) */
+/* Sidebar footer / user menu (note-list.js) — theme, language and sign-out all live behind one
+   trigger here, instead of being split between a header icon and a separate bottom row. */
 
 .sidebar-footer {
+  padding: 0.6rem;
+  border-top: 1px solid var(--border);
+  flex: none;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  border-top: 1px solid var(--border);
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.user-menu-trigger:hover {
+  background: var(--surface-2);
+}
+
+.user-avatar {
   flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .sidebar-user {
   flex: 1;
   min-width: 0;
   font-size: 0.8rem;
-  color: var(--text-dim);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.user-menu-trigger .chevron {
+  flex: none;
+  color: var(--text-dim);
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.user-menu-panel {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: var(--surface-2);
+}
+
+.user-menu-lang select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-0);
+  color: var(--text);
+  font-size: 0.8rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.user-menu-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0.2rem;
+}
+
+.user-menu-danger {
+  color: var(--danger);
+}
+
+/* Credentials modal (credentials-modal.js) — reuses .login-field/.login-error/.login-submit from
+   the login screen, so the form looks consistent wherever it appears. */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 22rem;
+  padding: 1.25rem;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-cancel {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.modal-cancel:hover {
+  background: var(--surface-2);
 }

@@ -10,6 +10,8 @@ function createNotesStore() {
     loading: false,
     error: null,
     conflict: null,
+    // Set by createNote(), consumed and cleared by note-view.js's `note` watcher — see there.
+    justCreatedId: null,
   })
 
   function active() {
@@ -45,6 +47,10 @@ function createNotesStore() {
     const note = await notesApi.create(t('Новая заметка'), '')
     state.notes.unshift(note)
     state.activeId = note.id
+    // A one-shot marker note-view.js's `note` watcher consumes to switch into split ("Оба") mode
+    // for this one note only — a blank new note is more useful to write and preview side by side
+    // than in whatever mode was last showing.
+    state.justCreatedId = note.id
     return note
   }
 
@@ -75,15 +81,18 @@ function createNotesStore() {
     }
   }
 
-  async function removeActive() {
-    const note = active()
-    if (!note) return
-    await notesApi.remove(note.id)
-    state.notes = state.notes.filter((n) => n.id !== note.id)
-    state.activeId = state.notes[0]?.id ?? null
+  // remove deletes any note by id, not just the active one — the sidebar's per-row delete button
+  // can target a note the user hasn't opened. If the deleted note was the active one, selection
+  // falls back to whatever's now first; otherwise the current selection is left alone.
+  async function remove(id) {
+    await notesApi.remove(id)
+    state.notes = state.notes.filter((n) => n.id !== id)
+    if (state.activeId === id) {
+      state.activeId = state.notes[0]?.id ?? null
+    }
   }
 
-  return { state, active, fetchNotes, fetchTags, select, createNote, importNote, saveActive, removeActive }
+  return { state, active, fetchNotes, fetchTags, select, createNote, importNote, saveActive, remove }
 }
 
 export const notesStore = createNotesStore()

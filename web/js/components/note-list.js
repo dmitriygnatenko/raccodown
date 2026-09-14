@@ -2,25 +2,18 @@ import { notesStore } from '../store/notes.js'
 import { authStore } from '../store/auth.js'
 import { effectiveTheme } from '../data/theme.js'
 import { i18nStore, t, SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../data/i18n.js'
+import CredentialsModal from './credentials-modal.js'
 
 // dateLocales maps our language codes to the locale toLocaleDateString expects.
 const dateLocales = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', de: 'de-DE', fr: 'fr-FR' }
 
 export default {
+  components: { 'credentials-modal': CredentialsModal },
   template: `
     <aside class="sidebar">
       <div class="sidebar-header">
         <span class="brand">🦝 Raccodown</span>
-        <div class="header-actions">
-          <button class="icon-btn-ghost" :title="themeButtonTitle" @click="toggleTheme">{{ themeIcon }}</button>
-          <button class="icon-btn" :title="t('Новая заметка')" @click="createNote">+</button>
-        </div>
-      </div>
-
-      <div class="sidebar-toolbar">
-        <button class="text-btn" :title="t('Импортировать .md/.txt файлы как заметки')" @click="triggerImport">📥 {{ t('Импорт') }}</button>
-        <button class="text-btn" :title="t('Скачать все заметки одним zip-архивом')" @click="exportNotes">📦 {{ t('Экспорт') }}</button>
-        <input ref="importInput" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden @change="importFiles" />
+        <button class="icon-btn" :title="t('Новая заметка')" @click="createNote">+</button>
       </div>
 
       <input v-model="query" class="search" type="search" :placeholder="t('Поиск заметок…')" />
@@ -49,18 +42,61 @@ export default {
           :class="{ active: note.id === store.activeId }"
           @click="select(note.id)"
         >
-          <div class="note-title">{{ note.title || t('Без названия') }}</div>
-          <div class="note-meta">{{ formatDate(note.updatedAt) }} · {{ note.tags.join(', ') }}</div>
+          <div class="note-item-main">
+            <div class="note-title">{{ note.title || t('Без названия') }}</div>
+            <div class="note-meta">{{ formatDate(note.updatedAt) }} · {{ note.tags.join(', ') }}</div>
+          </div>
+          <button class="note-delete" :title="t('Удалить')" @click.stop="remove(note)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 7h12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m2 0v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12ZM10 11v6M14 11v6" />
+            </svg>
+          </button>
         </li>
       </ul>
 
       <div class="sidebar-footer">
-        <select class="lang-select" :aria-label="t('Язык')" :value="i18nStore.language" @change="changeLanguage($event.target.value)">
-          <option v-for="lang in languages" :key="lang" :value="lang">{{ languageLabels[lang] }}</option>
-        </select>
-        <span class="sidebar-user" :title="authStore.user?.username">{{ authStore.user?.username }}</span>
-        <button class="text-btn" @click="logout">{{ t('Выйти') }}</button>
+        <div class="user-menu">
+          <button class="user-menu-trigger" @click="menuOpen = !menuOpen">
+            <span class="user-avatar">{{ userInitial }}</span>
+            <span class="sidebar-user" :title="authStore.user?.username">{{ authStore.user?.username }}</span>
+            <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+
+          <div v-if="menuOpen" class="menu-backdrop" @click="menuOpen = false"></div>
+
+          <div v-if="menuOpen" class="user-menu-panel">
+            <button class="user-menu-item" :title="t('Импортировать .md/.txt файлы как заметки')" @click="triggerImport">
+              <span>📥 {{ t('Импорт') }}</span>
+            </button>
+            <button class="user-menu-item" :title="t('Скачать все заметки одним zip-архивом')" @click="exportNotes">
+              <span>📦 {{ t('Экспорт') }}</span>
+            </button>
+            <input ref="importInput" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" multiple hidden @change="importFiles" />
+
+            <div class="user-menu-sep"></div>
+
+            <button class="user-menu-item" @click="toggleTheme">
+              <span>{{ themeIcon }} {{ themeButtonTitle }}</span>
+            </button>
+
+            <label class="user-menu-item user-menu-lang">
+              <span>{{ t('Язык') }}</span>
+              <select :aria-label="t('Язык')" :value="i18nStore.language" @change="changeLanguage($event.target.value)">
+                <option v-for="lang in languages" :key="lang" :value="lang">{{ languageLabels[lang] }}</option>
+              </select>
+            </label>
+
+            <div class="user-menu-sep"></div>
+
+            <button class="user-menu-item" @click="openCredentials">
+              <span>{{ t('Изменить логин и пароль') }}</span>
+            </button>
+            <button class="user-menu-item user-menu-danger" @click="logout">{{ t('Выйти') }}</button>
+          </div>
+        </div>
       </div>
+
+      <credentials-modal v-if="showCredentials" @close="showCredentials = false" />
     </aside>
   `,
   data() {
@@ -73,6 +109,8 @@ export default {
       query: '',
       activeTag: null,
       debounce: null,
+      menuOpen: false,
+      showCredentials: false,
     }
   },
   computed: {
@@ -81,6 +119,9 @@ export default {
     },
     themeButtonTitle() {
       return effectiveTheme() === 'dark' ? t('Светлая тема') : t('Тёмная тема')
+    },
+    userInitial() {
+      return (authStore.state.user?.username?.[0] ?? '?').toUpperCase()
     },
   },
   mounted() {
@@ -103,6 +144,11 @@ export default {
     select(id) {
       notesStore.select(id)
     },
+    async remove(note) {
+      if (!confirm(t('Удалить заметку «{title}»?', { title: note.title || t('Без названия') }))) return
+      await notesStore.remove(note.id)
+      await notesStore.fetchTags()
+    },
     toggleTag(tag) {
       this.activeTag = this.activeTag === tag ? null : tag
       notesStore.fetchNotes({ q: this.query, tag: this.activeTag ?? undefined })
@@ -114,9 +160,15 @@ export default {
       authStore.changeTheme(effectiveTheme() === 'dark' ? 'light' : 'dark')
     },
     logout() {
+      this.menuOpen = false
       authStore.logout()
     },
+    openCredentials() {
+      this.menuOpen = false
+      this.showCredentials = true
+    },
     triggerImport() {
+      this.menuOpen = false
       this.$refs.importInput.click()
     },
     // importFiles creates one note per selected file (title from the filename, content verbatim),
@@ -142,6 +194,7 @@ export default {
       }
     },
     exportNotes() {
+      this.menuOpen = false
       window.location.href = '/api/v1/notes/export'
     },
     formatDate(iso) {
