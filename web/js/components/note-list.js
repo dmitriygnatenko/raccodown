@@ -3,17 +3,24 @@ import { authStore } from '../store/auth.js'
 import { effectiveTheme } from '../data/theme.js'
 import { i18nStore, t, SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../data/i18n.js'
 import CredentialsModal from './credentials-modal.js'
+import DeleteNoteModal from './delete-note-modal.js'
 
 // dateLocales maps our language codes to the locale toLocaleDateString expects.
 const dateLocales = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', de: 'de-DE', fr: 'fr-FR' }
 
 export default {
-  components: { 'credentials-modal': CredentialsModal },
+  components: { 'credentials-modal': CredentialsModal, 'delete-note-modal': DeleteNoteModal },
   template: `
     <aside class="sidebar">
       <div class="sidebar-header">
         <span class="brand">🦝 Raccodown</span>
-        <button class="icon-btn" :title="t('Новая заметка')" @click="createNote">+</button>
+        <button class="icon-btn" :title="t('Новая заметка')" @click="createNote">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2Z" />
+            <path d="M14 2v6h6" />
+            <path d="M12 12v6M9 15h6" />
+          </svg>
+        </button>
       </div>
 
       <input v-model="query" class="search" type="search" :placeholder="t('Поиск заметок…')" />
@@ -97,6 +104,7 @@ export default {
       </div>
 
       <credentials-modal v-if="showCredentials" @close="showCredentials = false" />
+      <delete-note-modal v-if="noteToDelete" :note="noteToDelete" @close="noteToDelete = null" />
     </aside>
   `,
   data() {
@@ -111,6 +119,7 @@ export default {
       debounce: null,
       menuOpen: false,
       showCredentials: false,
+      noteToDelete: null,
     }
   },
   computed: {
@@ -144,10 +153,8 @@ export default {
     select(id) {
       notesStore.select(id)
     },
-    async remove(note) {
-      if (!confirm(t('Удалить заметку «{title}»?', { title: note.title || t('Без названия') }))) return
-      await notesStore.remove(note.id)
-      await notesStore.fetchTags()
+    remove(note) {
+      this.noteToDelete = note
     },
     toggleTag(tag) {
       this.activeTag = this.activeTag === tag ? null : tag

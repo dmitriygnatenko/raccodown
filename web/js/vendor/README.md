@@ -25,6 +25,17 @@ npm install --no-save markdown-it@15.0.2
 npx esbuild markdown-it --bundle --format=esm --minify --outfile=markdown-it.js
 ```
 
+## `markdown-it-multimd-table.js`
+
+GFM-style pipe tables aren't part of markdown-it's own syntax — this plugin adds them. It doesn't
+import `markdown-it` itself (just receives the instance as a parameter when `.use()`d), so unlike
+the `cm-*.js` files below it's safe to bundle as a fully self-contained file:
+
+```bash
+npm install --no-save markdown-it-multimd-table@4.2.3
+npx esbuild markdown-it-multimd-table --bundle --format=esm --minify --outfile=markdown-it-multimd-table.js
+```
+
 ## `cm-*.js`
 
 One file per `@codemirror/*` package actually imported (`state`, `view`, `commands`, `language`,

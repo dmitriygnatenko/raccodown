@@ -81,8 +81,8 @@ button {
   appearance: none;
 }
 
-input:focus,
-button:focus {
+input:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -350,15 +350,6 @@ button:focus {
   border-right: 1px solid var(--border);
 }
 
-.status-bar {
-  display: flex;
-  gap: 1rem;
-  padding: 0.35rem 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
 .empty-state {
   flex: 1;
   display: flex;
@@ -386,6 +377,9 @@ button:focus {
 }
 
 .cm-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: transparent;
   color: var(--text);
@@ -412,6 +406,12 @@ button:focus {
 
 .cm-toolbar .glyph-strike {
   text-decoration: line-through;
+}
+
+.cm-toolbar .glyph-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .cm-toolbar-sep {
@@ -460,6 +460,23 @@ button:focus {
 
 .markdown-preview code {
   font-family: var(--font-mono);
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: var(--surface-1);
+  font-weight: 600;
 }
 
 /* Boot screen (app.js) — shown only for the instant it takes /api/v1/auth/me to answer */
@@ -744,4 +761,26 @@ button:focus {
 
 .modal-cancel:hover {
   background: var(--surface-2);
+}
+
+.modal-body {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.modal-danger {
+  border: none;
+  background: var(--danger);
+  color: white;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.modal-danger:hover {
+  background: #b91c1c;
 }

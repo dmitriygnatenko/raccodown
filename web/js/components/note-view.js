@@ -33,11 +33,6 @@ export default {
           <md-preview :content="content" />
         </div>
       </div>
-
-      <footer class="status-bar">
-        <span>{{ t('{n} слов', { n: wordCount }) }}</span>
-        <span v-if="note.tags.length">{{ note.tags.map((tag) => '#' + tag).join(' ') }}</span>
-      </footer>
     </section>
 
     <section v-else class="empty-state">
@@ -70,9 +65,6 @@ export default {
       if (this.saveState === 'saving') return t('Сохранение…')
       if (this.saveState === 'saved') return t('Сохранено')
       return ''
-    },
-    wordCount() {
-      return this.content.trim().split(/\s+/).filter(Boolean).length
     },
   },
   watch: {

@@ -118,6 +118,29 @@ export function insertCodeBlock(view) {
   view.focus()
 }
 
+// insertTable inserts a 2x2 GFM-style table skeleton on its own lines below the cursor (same "own
+// line" handling as insertHorizontalRule, since a table is a block-level construct), with the first
+// header cell selected so typing immediately replaces it.
+export function insertTable(view) {
+  const { state } = view
+  const pos = state.selection.main.to
+  const line = state.doc.lineAt(pos)
+  const lead = line.text ? '\n' : ''
+
+  const header1 = t('Заголовок 1')
+  const header2 = t('Заголовок 2')
+  const cell = t('Ячейка')
+  const table = `| ${header1} | ${header2} |\n| --- | --- |\n| ${cell} | ${cell} |\n`
+
+  const headerStart = line.to + lead.length + 2
+
+  view.dispatch({
+    changes: { from: line.to, insert: lead + table },
+    selection: EditorSelection.range(headerStart, headerStart + header1.length),
+  })
+  view.focus()
+}
+
 // insertHorizontalRule inserts a Markdown thematic break on its own line below the cursor.
 export function insertHorizontalRule(view) {
   const { state } = view

@@ -20,6 +20,7 @@ import {
   numberedList,
   insertLink,
   insertCodeBlock,
+  insertTable,
   insertHorizontalRule,
 } from '../data/markdown-commands.js'
 import { i18nStore, t } from '../data/i18n.js'
@@ -35,11 +36,18 @@ export default {
         <button :title="t('Курсив (Ctrl/Cmd+I)')" class="glyph-italic" @click="wrapInline(view, '*')">{{ t('Курсив (Ctrl/Cmd+I)').charAt(0) }}</button>
         <button :title="t('Зачёркнутый')" class="glyph-strike" @click="wrapInline(view, '~~')">{{ t('Зачёркнутый').charAt(0) }}</button>
         <span class="cm-toolbar-sep"></span>
-        <button :title="t('Код')" @click="wrapInline(view, '\`')">&lt;/&gt;</button>
-        <button :title="t('Блок кода')" @click="insertCodeBlock(view)">{ }</button>
+        <button :title="t('Блок кода')" class="glyph-mono" @click="insertCodeBlock(view)">{}</button>
         <button :title="t('Ссылка')" @click="insertLink(view)">🔗</button>
-        <span class="cm-toolbar-sep"></span>
         <button :title="t('Цитата')" @click="linePrefix(view, '> ')">❝</button>
+        <button :title="t('Таблица')" @click="insertTable(view)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="1" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <line x1="9" y1="4" x2="9" y2="20" />
+            <line x1="15" y1="4" x2="15" y2="20" />
+          </svg>
+        </button>
+        <span class="cm-toolbar-sep"></span>
         <button :title="t('Список')" @click="linePrefix(view, '- ')">•</button>
         <button :title="t('Нумерованный список')" @click="numberedList(view)">1.</button>
         <span class="cm-toolbar-sep"></span>
@@ -101,5 +109,15 @@ export default {
       })
     },
   },
-  methods: { t, wrapInline, linePrefix, toggleHeading, numberedList, insertLink, insertCodeBlock, insertHorizontalRule },
+  methods: {
+    t,
+    wrapInline,
+    linePrefix,
+    toggleHeading,
+    numberedList,
+    insertLink,
+    insertCodeBlock,
+    insertTable,
+    insertHorizontalRule,
+  },
 }
