@@ -196,13 +196,14 @@ func TestRepository_Create(t *testing.T) {
 	})
 }
 
-// TestRepository_UpdateUsername covers the rename, including the not-found and conflict
-// translations.
-func TestRepository_UpdateUsername(t *testing.T) {
+// TestRepository_UpdateCredentials covers the username/password-hash change, including the
+// not-found and conflict translations.
+func TestRepository_UpdateCredentials(t *testing.T) {
 	t.Parallel()
 
 	id := fakeID()
 	username := fakeUsername()
+	hash := fakeHash()
 
 	tests := []struct {
 		name      string
@@ -210,16 +211,18 @@ func TestRepository_UpdateUsername(t *testing.T) {
 		assertErr func(t *testing.T, err error)
 	}{
 		{
-			name: "renames the user",
+			name: "changes the username and password hash",
 			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUsername(context.Background(), id, username, gomock.Any()).Return(true, nil)
+				m.EXPECT().UpdateUserCredentials(context.Background(), id, username, hash, gomock.Any()).
+					Return(true, nil)
 			},
 			assertErr: func(t *testing.T, err error) { require.NoError(t, err) },
 		},
 		{
 			name: "an unknown id becomes a message-less NotFoundError",
 			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUsername(context.Background(), id, username, gomock.Any()).Return(false, nil)
+				m.EXPECT().UpdateUserCredentials(context.Background(), id, username, hash, gomock.Any()).
+					Return(false, nil)
 			},
 			assertErr: func(t *testing.T, err error) {
 				var notFound *domainerror.NotFoundError
@@ -229,7 +232,7 @@ func TestRepository_UpdateUsername(t *testing.T) {
 		{
 			name: "a taken username becomes a message-less ConflictError",
 			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUsername(context.Background(), id, username, gomock.Any()).
+				m.EXPECT().UpdateUserCredentials(context.Background(), id, username, hash, gomock.Any()).
 					Return(false, storageError.UniqueViolationError)
 			},
 			assertErr: func(t *testing.T, err error) {
@@ -240,7 +243,8 @@ func TestRepository_UpdateUsername(t *testing.T) {
 		{
 			name: "any other storage error is propagated",
 			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUsername(context.Background(), id, username, gomock.Any()).Return(false, errStub)
+				m.EXPECT().UpdateUserCredentials(context.Background(), id, username, hash, gomock.Any()).
+					Return(false, errStub)
 			},
 			assertErr: func(t *testing.T, err error) { require.ErrorIs(t, err, errStub) },
 		},
@@ -253,59 +257,7 @@ func TestRepository_UpdateUsername(t *testing.T) {
 			r, m := newRepo(t)
 			tt.mock(m)
 
-			err := r.UpdateUsername(context.Background(), id, username)
-			tt.assertErr(t, err)
-		})
-	}
-}
-
-// TestRepository_UpdatePasswordHash covers the password change, including the not-found
-// translation.
-func TestRepository_UpdatePasswordHash(t *testing.T) {
-	t.Parallel()
-
-	id := fakeID()
-	hash := fakeHash()
-
-	tests := []struct {
-		name      string
-		mock      func(m *mocks.MockStorage)
-		assertErr func(t *testing.T, err error)
-	}{
-		{
-			name: "overwrites the stored hash",
-			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUserPasswordHash(context.Background(), id, hash, gomock.Any()).Return(true, nil)
-			},
-			assertErr: func(t *testing.T, err error) { require.NoError(t, err) },
-		},
-		{
-			name: "an unknown id becomes a message-less NotFoundError",
-			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUserPasswordHash(context.Background(), id, hash, gomock.Any()).Return(false, nil)
-			},
-			assertErr: func(t *testing.T, err error) {
-				var notFound *domainerror.NotFoundError
-				require.ErrorAs(t, err, &notFound)
-			},
-		},
-		{
-			name: "a storage error is propagated",
-			mock: func(m *mocks.MockStorage) {
-				m.EXPECT().UpdateUserPasswordHash(context.Background(), id, hash, gomock.Any()).Return(false, errStub)
-			},
-			assertErr: func(t *testing.T, err error) { require.ErrorIs(t, err, errStub) },
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			r, m := newRepo(t)
-			tt.mock(m)
-
-			err := r.UpdatePasswordHash(context.Background(), id, hash)
+			err := r.UpdateCredentials(context.Background(), id, username, hash)
 			tt.assertErr(t, err)
 		})
 	}

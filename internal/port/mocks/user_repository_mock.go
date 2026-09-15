@@ -117,18 +117,18 @@ func (mr *MockUserRepositoryMockRecorder) GetSettings(ctx, id any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettings", reflect.TypeOf((*MockUserRepository)(nil).GetSettings), ctx, id)
 }
 
-// UpdatePasswordHash mocks base method.
-func (m *MockUserRepository) UpdatePasswordHash(ctx context.Context, id uint64, hash string) error {
+// UpdateCredentials mocks base method.
+func (m *MockUserRepository) UpdateCredentials(ctx context.Context, id uint64, username, passwordHash string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePasswordHash", ctx, id, hash)
+	ret := m.ctrl.Call(m, "UpdateCredentials", ctx, id, username, passwordHash)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdatePasswordHash indicates an expected call of UpdatePasswordHash.
-func (mr *MockUserRepositoryMockRecorder) UpdatePasswordHash(ctx, id, hash any) *gomock.Call {
+// UpdateCredentials indicates an expected call of UpdateCredentials.
+func (mr *MockUserRepositoryMockRecorder) UpdateCredentials(ctx, id, username, passwordHash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePasswordHash", reflect.TypeOf((*MockUserRepository)(nil).UpdatePasswordHash), ctx, id, hash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCredentials", reflect.TypeOf((*MockUserRepository)(nil).UpdateCredentials), ctx, id, username, passwordHash)
 }
 
 // UpdateSettings mocks base method.
@@ -143,18 +143,4 @@ func (m *MockUserRepository) UpdateSettings(ctx context.Context, id uint64, sett
 func (mr *MockUserRepositoryMockRecorder) UpdateSettings(ctx, id, settings any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSettings", reflect.TypeOf((*MockUserRepository)(nil).UpdateSettings), ctx, id, settings)
-}
-
-// UpdateUsername mocks base method.
-func (m *MockUserRepository) UpdateUsername(ctx context.Context, id uint64, username string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUsername", ctx, id, username)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateUsername indicates an expected call of UpdateUsername.
-func (mr *MockUserRepositoryMockRecorder) UpdateUsername(ctx, id, username any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUsername", reflect.TypeOf((*MockUserRepository)(nil).UpdateUsername), ctx, id, username)
 }

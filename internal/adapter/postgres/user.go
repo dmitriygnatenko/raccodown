@@ -46,27 +46,37 @@ func (s *Storage) CreateUser(ctx context.Context, username, passwordHash string,
 	return id, wrapUnique(err)
 }
 
-// UpdateUsername renames a user. found is false if no user with this id existed. A taken username
-// comes back wrapped in storageError.UniqueViolationError.
-func (s *Storage) UpdateUsername(ctx context.Context, id uint64, username string, updatedAt time.Time) (bool, error) {
-	res, err := s.DB.ExecContext(ctx,
-		`UPDATE users SET username = $1, updated_at = $2 WHERE id = $3`, username, updatedAt, id,
+// UpdateUserCredentials changes a user's username and/or password hash in one statement — a blank
+// username or hash leaves that column unchanged. found is false if no user with this id existed. A
+// taken username comes back wrapped in storageError.UniqueViolationError.
+func (s *Storage) UpdateUserCredentials(
+	ctx context.Context, id uint64, username, passwordHash string, updatedAt time.Time,
+) (bool, error) {
+	var (
+		res sql.Result
+		err error
 	)
-	if err != nil {
-		return false, wrapUnique(err)
+
+	switch {
+	case username != "" && passwordHash != "":
+		res, err = s.DB.ExecContext(ctx,
+			`UPDATE users SET username = $1, password_hash = $2, updated_at = $3 WHERE id = $4`,
+			username, passwordHash, updatedAt, id,
+		)
+	case username != "":
+		res, err = s.DB.ExecContext(ctx,
+			`UPDATE users SET username = $1, updated_at = $2 WHERE id = $3`, username, updatedAt, id,
+		)
+	case passwordHash != "":
+		res, err = s.DB.ExecContext(ctx,
+			`UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3`, passwordHash, updatedAt, id,
+		)
+	default:
+		return true, nil
 	}
 
-	return affected(res)
-}
-
-// UpdateUserPasswordHash overwrites a user's stored password hash. found is false if no user with
-// this id existed.
-func (s *Storage) UpdateUserPasswordHash(ctx context.Context, id uint64, hash string, updatedAt time.Time) (bool, error) {
-	res, err := s.DB.ExecContext(ctx,
-		`UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3`, hash, updatedAt, id,
-	)
 	if err != nil {
-		return false, err
+		return false, wrapUnique(err)
 	}
 
 	return affected(res)

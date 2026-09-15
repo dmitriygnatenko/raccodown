@@ -148,7 +148,7 @@ func TestHandleUpdateCredentials(t *testing.T) {
 			return hash == "hashed" && password == "correct-horse"
 		}
 		deps.hasher.hashFn = func(string) (string, error) { return "new-hash", nil }
-		deps.users.updatePasswordHashFn = func(context.Context, uint64, string) error { return nil }
+		deps.users.updateCredentialsFn = func(context.Context, uint64, string, string) error { return nil }
 
 		body := `{"currentPassword":"correct-horse","newPassword":"battery-staple"}`
 		req := httptest.NewRequest(http.MethodPatch, "/api/v1/auth/credentials", strings.NewReader(body))

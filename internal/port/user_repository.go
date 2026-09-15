@@ -23,11 +23,11 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id uint64) (entity.User, error)
 	// Create returns a *domainerror.ConflictError if the username is already taken.
 	Create(ctx context.Context, req UserCreateRequest) (entity.User, error)
-	// UpdateUsername returns a *domainerror.ConflictError if the new username is already taken, and
-	// a *domainerror.NotFoundError if no user with this id exists.
-	UpdateUsername(ctx context.Context, id uint64, username string) error
-	// UpdatePasswordHash returns a *domainerror.NotFoundError if no user with this id exists.
-	UpdatePasswordHash(ctx context.Context, id uint64, hash string) error
+	// UpdateCredentials changes a user's username and/or password hash in one atomic operation — a
+	// blank username or hash leaves that column unchanged. Returns a *domainerror.ConflictError if a
+	// non-blank username is already taken, and a *domainerror.NotFoundError if no user with this id
+	// exists.
+	UpdateCredentials(ctx context.Context, id uint64, username, passwordHash string) error
 	// GetSettings returns a *domainerror.NotFoundError if no user with this id exists.
 	GetSettings(ctx context.Context, id uint64) (entity.UserSettings, error)
 	// UpdateSettings overwrites a user's saved UI settings (language, theme). Returns a

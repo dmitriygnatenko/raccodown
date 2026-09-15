@@ -75,62 +75,76 @@ func TestUser_CreateDuplicateUsername(t *testing.T) {
 	require.ErrorIs(t, err, storageError.UniqueViolationError)
 }
 
-// TestUser_UpdateUsername covers the rename, the "not found" false, and the duplicate-username
-// error.
-func TestUser_UpdateUsername(t *testing.T) {
+// TestUser_UpdateUserCredentials covers renaming, changing the password hash, changing both in one
+// call, the "not found" false, and the duplicate-username error.
+func TestUser_UpdateUserCredentials(t *testing.T) {
 	t.Parallel()
 
 	s := newTestStorage(t)
 	ctx := context.Background()
 
-	user := createFakeUser(t, s)
+	t.Run("changes only the username", func(t *testing.T) {
+		user := createFakeUser(t, s)
+		newUsername := fakeUsername()
+		newUpdatedAt := user.UpdatedAt.Add(time.Hour)
 
-	newUsername := fakeUsername()
-	newUpdatedAt := user.UpdatedAt.Add(time.Hour)
+		found, err := s.UpdateUserCredentials(ctx, user.ID, newUsername, "", newUpdatedAt)
+		require.NoError(t, err)
+		require.True(t, found)
 
-	found, err := s.UpdateUsername(ctx, user.ID, newUsername, newUpdatedAt)
-	require.NoError(t, err)
-	require.True(t, found)
+		got, err := s.FindUserByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.Equal(t, newUsername, got.Username)
+		require.Equal(t, user.PasswordHash, got.PasswordHash)
+		require.Equal(t, newUpdatedAt, got.UpdatedAt)
+	})
 
-	got, err := s.FindUserByID(ctx, user.ID)
-	require.NoError(t, err)
-	require.Equal(t, newUsername, got.Username)
-	require.Equal(t, newUpdatedAt, got.UpdatedAt)
+	t.Run("changes only the password hash", func(t *testing.T) {
+		user := createFakeUser(t, s)
+		newHash := fakeHash()
+		newUpdatedAt := user.UpdatedAt.Add(time.Hour)
 
-	found, err = s.UpdateUsername(ctx, 999999, fakeUsername(), time.Now().UTC())
-	require.NoError(t, err)
-	require.False(t, found)
+		found, err := s.UpdateUserCredentials(ctx, user.ID, "", newHash, newUpdatedAt)
+		require.NoError(t, err)
+		require.True(t, found)
 
-	other := createFakeUser(t, s)
+		got, err := s.FindUserByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.Equal(t, user.Username, got.Username)
+		require.Equal(t, newHash, got.PasswordHash)
+		require.Equal(t, newUpdatedAt, got.UpdatedAt)
+	})
 
-	_, err = s.UpdateUsername(ctx, other.ID, newUsername, time.Now().UTC())
-	require.ErrorIs(t, err, storageError.UniqueViolationError)
-}
+	t.Run("changes both in one call", func(t *testing.T) {
+		user := createFakeUser(t, s)
+		newUsername := fakeUsername()
+		newHash := fakeHash()
+		newUpdatedAt := user.UpdatedAt.Add(time.Hour)
 
-// TestUser_UpdatePasswordHash covers the password change and the "not found" false.
-func TestUser_UpdatePasswordHash(t *testing.T) {
-	t.Parallel()
+		found, err := s.UpdateUserCredentials(ctx, user.ID, newUsername, newHash, newUpdatedAt)
+		require.NoError(t, err)
+		require.True(t, found)
 
-	s := newTestStorage(t)
-	ctx := context.Background()
+		got, err := s.FindUserByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.Equal(t, newUsername, got.Username)
+		require.Equal(t, newHash, got.PasswordHash)
+		require.Equal(t, newUpdatedAt, got.UpdatedAt)
+	})
 
-	user := createFakeUser(t, s)
+	t.Run("an unknown id is not found", func(t *testing.T) {
+		found, err := s.UpdateUserCredentials(ctx, 999999, fakeUsername(), fakeHash(), time.Now().UTC())
+		require.NoError(t, err)
+		require.False(t, found)
+	})
 
-	newHash := fakeHash()
-	newUpdatedAt := user.UpdatedAt.Add(time.Hour)
+	t.Run("a taken username is a unique violation", func(t *testing.T) {
+		user := createFakeUser(t, s)
+		other := createFakeUser(t, s)
 
-	found, err := s.UpdateUserPasswordHash(ctx, user.ID, newHash, newUpdatedAt)
-	require.NoError(t, err)
-	require.True(t, found)
-
-	got, err := s.FindUserByID(ctx, user.ID)
-	require.NoError(t, err)
-	require.Equal(t, newHash, got.PasswordHash)
-	require.Equal(t, newUpdatedAt, got.UpdatedAt)
-
-	found, err = s.UpdateUserPasswordHash(ctx, 999999, fakeHash(), time.Now().UTC())
-	require.NoError(t, err)
-	require.False(t, found)
+		_, err := s.UpdateUserCredentials(ctx, other.ID, user.Username, "", time.Now().UTC())
+		require.ErrorIs(t, err, storageError.UniqueViolationError)
+	})
 }
 
 // TestUser_CountUsers covers the count the first-run seeding decision is made on.

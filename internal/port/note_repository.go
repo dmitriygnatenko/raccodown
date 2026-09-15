@@ -37,6 +37,8 @@ type NoteUpdateRequest struct {
 // NoteRepository persists Notes.
 type NoteRepository interface {
 	List(ctx context.Context, filter NoteListFilter) ([]entity.Note, error)
+	// ListTags returns every distinct tag currently in use by at least one note, alphabetically.
+	ListTags(ctx context.Context) ([]string, error)
 	// FindByID returns a *domainerror.NotFoundError if no note with this id exists.
 	FindByID(ctx context.Context, id uint64) (entity.Note, error)
 	Create(ctx context.Context, req NoteCreateRequest) (entity.Note, error)

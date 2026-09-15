@@ -29,12 +29,12 @@ type Storage interface {
 	// CreateUser inserts a user row and returns its new, database-assigned id. A taken username
 	// comes back wrapped in storageError.UniqueViolationError.
 	CreateUser(ctx context.Context, username, passwordHash string, createdAt, updatedAt time.Time) (id uint64, err error)
-	// UpdateUsername renames a user. found is false if no user with this id existed. A taken
-	// username comes back wrapped in storageError.UniqueViolationError.
-	UpdateUsername(ctx context.Context, id uint64, username string, updatedAt time.Time) (found bool, err error)
-	// UpdateUserPasswordHash overwrites a user's stored password hash. found is false if no user
-	// with this id existed.
-	UpdateUserPasswordHash(ctx context.Context, id uint64, hash string, updatedAt time.Time) (found bool, err error)
+	// UpdateUserCredentials changes a user's username and/or password hash in one statement — a
+	// blank username or hash leaves that column unchanged. found is false if no user with this id
+	// existed. A taken username comes back wrapped in storageError.UniqueViolationError.
+	UpdateUserCredentials(
+		ctx context.Context, id uint64, username, passwordHash string, updatedAt time.Time,
+	) (found bool, err error)
 	// GetUserSettings returns sql.ErrNoRows when no user has this id.
 	GetUserSettings(ctx context.Context, id uint64) (model.UserSettings, error)
 	// UpdateUserSettings overwrites a user's settings JSON column. found is false if no user with
@@ -107,29 +107,17 @@ func (r *Repository) Create(ctx context.Context, req port.UserCreateRequest) (en
 	}, nil
 }
 
-// UpdateUsername renames a user, reporting a message-less *domainerror.NotFoundError for an unknown
-// id or a message-less *domainerror.ConflictError if the new username is already taken.
-func (r *Repository) UpdateUsername(ctx context.Context, id uint64, username string) error {
-	found, err := r.storage.UpdateUsername(ctx, id, username, time.Now().UTC())
+// UpdateCredentials changes a user's username and/or password hash in one atomic operation — a
+// blank username or hash leaves that column unchanged. Reports a message-less
+// *domainerror.NotFoundError for an unknown id or a message-less *domainerror.ConflictError if the
+// new username is already taken.
+func (r *Repository) UpdateCredentials(ctx context.Context, id uint64, username, passwordHash string) error {
+	found, err := r.storage.UpdateUserCredentials(ctx, id, username, passwordHash, time.Now().UTC())
 	if err != nil {
 		if errors.Is(err, storageError.UniqueViolationError) {
 			return &domainerror.ConflictError{}
 		}
 
-		return err
-	}
-
-	if !found {
-		return &domainerror.NotFoundError{}
-	}
-
-	return nil
-}
-
-// UpdatePasswordHash reports a message-less *domainerror.NotFoundError for an unknown id.
-func (r *Repository) UpdatePasswordHash(ctx context.Context, id uint64, hash string) error {
-	found, err := r.storage.UpdateUserPasswordHash(ctx, id, hash, time.Now().UTC())
-	if err != nil {
 		return err
 	}
 

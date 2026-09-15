@@ -71,6 +71,30 @@ func (s *Storage) ListNotes(ctx context.Context) ([]model.Note, error) {
 	return notes, nil
 }
 
+// ListTags returns every distinct tag currently in use, alphabetically. The tags table is kept in
+// sync with note_tags by setNoteTags/pruneUnusedTags, so every row in it is in use by at least one
+// note.
+func (s *Storage) ListTags(ctx context.Context) ([]string, error) {
+	rows, err := s.DB.QueryContext(ctx, `SELECT name FROM tags ORDER BY name`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tags []string
+
+	for rows.Next() {
+		var tag string
+		if err := rows.Scan(&tag); err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, tag)
+	}
+
+	return tags, rows.Err()
+}
+
 // FindNoteByID looks up a note by id, returning sql.ErrNoRows when there's no match.
 func (s *Storage) FindNoteByID(ctx context.Context, id uint64) (model.Note, error) {
 	note, err := scanNote(s.DB.QueryRowContext(ctx, `SELECT `+noteColumns+` FROM notes WHERE id = ?`, id))

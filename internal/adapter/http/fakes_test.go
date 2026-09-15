@@ -37,6 +37,7 @@ const testToken = "test-session-token"
 // fakeNoteRepository is a hand-rolled test double for port.NoteRepository.
 type fakeNoteRepository struct {
 	listFn     func(ctx context.Context, filter port.NoteListFilter) ([]entity.Note, error)
+	listTagsFn func(ctx context.Context) ([]string, error)
 	findByIDFn func(ctx context.Context, id uint64) (entity.Note, error)
 	createFn   func(ctx context.Context, req port.NoteCreateRequest) (entity.Note, error)
 	updateFn   func(ctx context.Context, req port.NoteUpdateRequest) (entity.Note, error)
@@ -45,6 +46,10 @@ type fakeNoteRepository struct {
 
 func (f *fakeNoteRepository) List(ctx context.Context, filter port.NoteListFilter) ([]entity.Note, error) {
 	return f.listFn(ctx, filter)
+}
+
+func (f *fakeNoteRepository) ListTags(ctx context.Context) ([]string, error) {
+	return f.listTagsFn(ctx)
 }
 
 func (f *fakeNoteRepository) FindByID(ctx context.Context, id uint64) (entity.Note, error) {
@@ -65,14 +70,13 @@ func (f *fakeNoteRepository) Delete(ctx context.Context, id uint64) error {
 
 // fakeUserRepository is a hand-rolled test double for port.UserRepository.
 type fakeUserRepository struct {
-	findByUsernameFn     func(ctx context.Context, username string) (entity.User, error)
-	findByIDFn           func(ctx context.Context, id uint64) (entity.User, error)
-	createFn             func(ctx context.Context, req port.UserCreateRequest) (entity.User, error)
-	updateUsernameFn     func(ctx context.Context, id uint64, username string) error
-	updatePasswordHashFn func(ctx context.Context, id uint64, hash string) error
-	getSettingsFn        func(ctx context.Context, id uint64) (entity.UserSettings, error)
-	updateSettingsFn     func(ctx context.Context, id uint64, settings entity.UserSettings) error
-	countFn              func(ctx context.Context) (int, error)
+	findByUsernameFn    func(ctx context.Context, username string) (entity.User, error)
+	findByIDFn          func(ctx context.Context, id uint64) (entity.User, error)
+	createFn            func(ctx context.Context, req port.UserCreateRequest) (entity.User, error)
+	updateCredentialsFn func(ctx context.Context, id uint64, username, passwordHash string) error
+	getSettingsFn       func(ctx context.Context, id uint64) (entity.UserSettings, error)
+	updateSettingsFn    func(ctx context.Context, id uint64, settings entity.UserSettings) error
+	countFn             func(ctx context.Context) (int, error)
 }
 
 func (f *fakeUserRepository) FindByUsername(ctx context.Context, username string) (entity.User, error) {
@@ -87,12 +91,8 @@ func (f *fakeUserRepository) Create(ctx context.Context, req port.UserCreateRequ
 	return f.createFn(ctx, req)
 }
 
-func (f *fakeUserRepository) UpdateUsername(ctx context.Context, id uint64, username string) error {
-	return f.updateUsernameFn(ctx, id, username)
-}
-
-func (f *fakeUserRepository) UpdatePasswordHash(ctx context.Context, id uint64, hash string) error {
-	return f.updatePasswordHashFn(ctx, id, hash)
+func (f *fakeUserRepository) UpdateCredentials(ctx context.Context, id uint64, username, passwordHash string) error {
+	return f.updateCredentialsFn(ctx, id, username, passwordHash)
 }
 
 func (f *fakeUserRepository) GetSettings(ctx context.Context, id uint64) (entity.UserSettings, error) {

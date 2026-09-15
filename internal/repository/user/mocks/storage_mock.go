@@ -117,19 +117,19 @@ func (mr *MockStorageMockRecorder) GetUserSettings(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserSettings", reflect.TypeOf((*MockStorage)(nil).GetUserSettings), ctx, id)
 }
 
-// UpdateUserPasswordHash mocks base method.
-func (m *MockStorage) UpdateUserPasswordHash(ctx context.Context, id uint64, hash string, updatedAt time.Time) (bool, error) {
+// UpdateUserCredentials mocks base method.
+func (m *MockStorage) UpdateUserCredentials(ctx context.Context, id uint64, username, passwordHash string, updatedAt time.Time) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserPasswordHash", ctx, id, hash, updatedAt)
+	ret := m.ctrl.Call(m, "UpdateUserCredentials", ctx, id, username, passwordHash, updatedAt)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateUserPasswordHash indicates an expected call of UpdateUserPasswordHash.
-func (mr *MockStorageMockRecorder) UpdateUserPasswordHash(ctx, id, hash, updatedAt any) *gomock.Call {
+// UpdateUserCredentials indicates an expected call of UpdateUserCredentials.
+func (mr *MockStorageMockRecorder) UpdateUserCredentials(ctx, id, username, passwordHash, updatedAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPasswordHash", reflect.TypeOf((*MockStorage)(nil).UpdateUserPasswordHash), ctx, id, hash, updatedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserCredentials", reflect.TypeOf((*MockStorage)(nil).UpdateUserCredentials), ctx, id, username, passwordHash, updatedAt)
 }
 
 // UpdateUserSettings mocks base method.
@@ -145,19 +145,4 @@ func (m *MockStorage) UpdateUserSettings(ctx context.Context, id uint64, setting
 func (mr *MockStorageMockRecorder) UpdateUserSettings(ctx, id, settings, updatedAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserSettings", reflect.TypeOf((*MockStorage)(nil).UpdateUserSettings), ctx, id, settings, updatedAt)
-}
-
-// UpdateUsername mocks base method.
-func (m *MockStorage) UpdateUsername(ctx context.Context, id uint64, username string, updatedAt time.Time) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUsername", ctx, id, username, updatedAt)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateUsername indicates an expected call of UpdateUsername.
-func (mr *MockStorageMockRecorder) UpdateUsername(ctx, id, username, updatedAt any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUsername", reflect.TypeOf((*MockStorage)(nil).UpdateUsername), ctx, id, username, updatedAt)
 }

@@ -101,6 +101,21 @@ func (mr *MockNoteRepositoryMockRecorder) List(ctx, filter any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockNoteRepository)(nil).List), ctx, filter)
 }
 
+// ListTags mocks base method.
+func (m *MockNoteRepository) ListTags(ctx context.Context) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTags", ctx)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTags indicates an expected call of ListTags.
+func (mr *MockNoteRepositoryMockRecorder) ListTags(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockNoteRepository)(nil).ListTags), ctx)
+}
+
 // Update mocks base method.
 func (m *MockNoteRepository) Update(ctx context.Context, req port.NoteUpdateRequest) (entity.Note, error) {
 	m.ctrl.T.Helper()

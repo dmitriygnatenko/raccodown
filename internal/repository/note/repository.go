@@ -28,6 +28,8 @@ import (
 // else.
 type Storage interface {
 	ListNotes(ctx context.Context) ([]model.Note, error)
+	// ListTags returns every distinct tag currently in use, alphabetically.
+	ListTags(ctx context.Context) ([]string, error)
 	// FindNoteByID returns sql.ErrNoRows when no note has this id.
 	FindNoteByID(ctx context.Context, id uint64) (model.Note, error)
 	// CreateNote inserts a note row and returns its new, database-assigned id.
@@ -87,6 +89,11 @@ func (r *Repository) List(ctx context.Context, filter port.NoteListFilter) ([]en
 	sort.Slice(notes, func(i, j int) bool { return notes[i].UpdatedAt.After(notes[j].UpdatedAt) })
 
 	return notes, nil
+}
+
+// ListTags returns every distinct tag currently in use, alphabetically.
+func (r *Repository) ListTags(ctx context.Context) ([]string, error) {
+	return r.storage.ListTags(ctx)
 }
 
 // FindByID returns a message-less *domainerror.NotFoundError if no note with this id exists.

@@ -222,97 +222,83 @@ func TestCreateUser(t *testing.T) {
 
 // TestUpdateUsername covers the rename: found reports whether a row existed, and a taken username
 // has to come back as storageError.UniqueViolationError.
-func TestUpdateUsername(t *testing.T) {
+// TestUpdateUserCredentials covers all three column combinations (username only, hash only, both
+// in one statement), the "not found" false, and the taken-username unique violation.
+func TestUpdateUserCredentials(t *testing.T) {
 	t.Parallel()
 
-	query := `UPDATE users SET username = ?, updated_at = ? WHERE id = ?`
 	id := fakeID()
 	newUsername := fakeUsername()
+	hash := fakeHash()
 	updatedAt := fakeTime()
 
 	tests := []struct {
 		name         string
+		username     string
+		passwordHash string
 		mock         func(mock sqlmock.Sqlmock)
 		assertResult func(t *testing.T, got bool)
 		assertErr    func(t *testing.T, err error)
 	}{
 		{
-			name: "renames the user",
+			name:     "changes only the username",
+			username: newUsername,
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(newUsername, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 1))
+				mock.ExpectExec(`UPDATE users SET username = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(newUsername, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 1))
 			},
 			assertResult: func(t *testing.T, got bool) { require.True(t, got) },
 			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
 		},
 		{
-			name: "an unknown id is not found",
+			name:         "changes only the password hash",
+			passwordHash: hash,
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(newUsername, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 0))
+				mock.ExpectExec(`UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(hash, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			assertResult: func(t *testing.T, got bool) { require.True(t, got) },
+			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
+		},
+		{
+			name:         "changes both in one statement",
+			username:     newUsername,
+			passwordHash: hash,
+			mock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec(`UPDATE users SET username = ?, password_hash = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(newUsername, hash, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			assertResult: func(t *testing.T, got bool) { require.True(t, got) },
+			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
+		},
+		{
+			name:     "an unknown id is not found",
+			username: newUsername,
+			mock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec(`UPDATE users SET username = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(newUsername, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 0))
 			},
 			assertResult: func(t *testing.T, got bool) { require.False(t, got) },
 			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
 		},
 		{
-			name: "a taken username is a unique violation",
+			name:     "a taken username is a unique violation",
+			username: newUsername,
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(newUsername, updatedAt, id).WillReturnError(mysqlErr(errDuplicateEntry))
+				mock.ExpectExec(`UPDATE users SET username = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(newUsername, updatedAt, id).WillReturnError(mysqlErr(errDuplicateEntry))
 			},
 			assertResult: func(t *testing.T, got bool) {},
 			assertErr: func(t *testing.T, err error) {
 				require.ErrorIs(t, err, storageError.UniqueViolationError)
 			},
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			s, mock := newMock(t)
-			tt.mock(mock)
-
-			got, err := s.UpdateUsername(context.Background(), id, newUsername, updatedAt)
-			tt.assertErr(t, err)
-			tt.assertResult(t, got)
-		})
-	}
-}
-
-// TestUpdateUserPasswordHash covers the password change, with no constraint to wrap.
-func TestUpdateUserPasswordHash(t *testing.T) {
-	t.Parallel()
-
-	query := `UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?`
-	id := fakeID()
-	hash := fakeHash()
-	updatedAt := fakeTime()
-
-	tests := []struct {
-		name         string
-		mock         func(mock sqlmock.Sqlmock)
-		assertResult func(t *testing.T, got bool)
-		assertErr    func(t *testing.T, err error)
-	}{
 		{
-			name: "overwrites the stored hash",
+			name:         "a driver error is propagated",
+			passwordHash: hash,
 			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(hash, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 1))
-			},
-			assertResult: func(t *testing.T, got bool) { require.True(t, got) },
-			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
-		},
-		{
-			name: "an unknown id is not found",
-			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(hash, updatedAt, id).WillReturnResult(sqlmock.NewResult(0, 0))
-			},
-			assertResult: func(t *testing.T, got bool) { require.False(t, got) },
-			assertErr:    func(t *testing.T, err error) { require.NoError(t, err) },
-		},
-		{
-			name: "a driver error is propagated",
-			mock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(query).WithArgs(hash, updatedAt, id).WillReturnError(errStub)
+				mock.ExpectExec(`UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?`).
+					WithArgs(hash, updatedAt, id).WillReturnError(errStub)
 			},
 			assertResult: func(t *testing.T, got bool) {},
 			assertErr:    func(t *testing.T, err error) { require.ErrorIs(t, err, errStub) },
@@ -326,7 +312,7 @@ func TestUpdateUserPasswordHash(t *testing.T) {
 			s, mock := newMock(t)
 			tt.mock(mock)
 
-			got, err := s.UpdateUserPasswordHash(context.Background(), id, hash, updatedAt)
+			got, err := s.UpdateUserCredentials(context.Background(), id, tt.username, tt.passwordHash, updatedAt)
 			tt.assertErr(t, err)
 			tt.assertResult(t, got)
 		})

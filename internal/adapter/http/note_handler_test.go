@@ -236,8 +236,8 @@ func TestHandleListTags(t *testing.T) {
 
 	mux, deps := newTestServer()
 	stubAuthenticated(deps, testUser)
-	deps.notes.listFn = func(context.Context, port.NoteListFilter) ([]entity.Note, error) {
-		return []entity.Note{{ID: 1, Tags: []string{"work", "home"}}, {ID: 2, Tags: []string{"work"}}}, nil
+	deps.notes.listTagsFn = func(context.Context) ([]string, error) {
+		return []string{"home", "work"}, nil
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/tags", nil)

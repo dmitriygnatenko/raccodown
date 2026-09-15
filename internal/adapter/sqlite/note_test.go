@@ -144,6 +144,29 @@ func TestNote_ListNotes(t *testing.T) {
 	require.ElementsMatch(t, []model.Note{a, b}, got)
 }
 
+// TestNote_ListTags covers reading back the distinct, alphabetically sorted set of tags in use
+// across notes, with no duplicates for a tag shared by more than one note.
+func TestNote_ListTags(t *testing.T) {
+	t.Parallel()
+
+	s := newTestStorage(t)
+	ctx := context.Background()
+
+	shared := "shared-tag"
+
+	aFixture := fakeNoteModel()
+	aFixture.Tags = []string{shared, "zzz-only-a"}
+	createFakeNote(t, s, aFixture)
+
+	bFixture := fakeNoteModel()
+	bFixture.Tags = []string{shared, "aaa-only-b"}
+	createFakeNote(t, s, bFixture)
+
+	got, err := s.ListTags(ctx)
+	require.NoError(t, err)
+	require.Equal(t, []string{"aaa-only-b", shared, "zzz-only-a"}, got)
+}
+
 // TestNote_UpdateNote covers rewriting a note's editable fields and replacing its tags wholesale,
 // leaving CreatedAt untouched, and the "not found" false.
 func TestNote_UpdateNote(t *testing.T) {

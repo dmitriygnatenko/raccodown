@@ -120,6 +120,21 @@ func TestListNotes_Empty(t *testing.T) {
 	require.Empty(t, got)
 }
 
+// TestListTags covers reading back the distinct, alphabetically sorted set of tags in use.
+func TestListTags(t *testing.T) {
+	t.Parallel()
+
+	s, mock := newMock(t)
+
+	mock.ExpectQuery(`SELECT name FROM tags ORDER BY name`).WillReturnRows(
+		sqlmock.NewRows([]string{"name"}).AddRow("home").AddRow("work"),
+	)
+
+	got, err := s.ListTags(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, []string{"home", "work"}, got)
+}
+
 // TestCreateNote covers the note row insert plus its tag links landing in one transaction, the
 // database-assigned id coming back via a RETURNING clause (scanned like a query row, not read off an
 // exec Result), and that a failure midway rolls the whole thing back.

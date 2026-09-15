@@ -136,6 +136,32 @@ func TestRepository_List(t *testing.T) {
 	})
 }
 
+// TestRepository_ListTags covers the straight delegation to Storage.ListTags.
+func TestRepository_ListTags(t *testing.T) {
+	t.Parallel()
+
+	t.Run("tags come back as storage returns them", func(t *testing.T) {
+		t.Parallel()
+
+		r, m := newRepo(t)
+		m.EXPECT().ListTags(context.Background()).Return([]string{"home", "work"}, nil)
+
+		got, err := r.ListTags(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, []string{"home", "work"}, got)
+	})
+
+	t.Run("a storage error is propagated", func(t *testing.T) {
+		t.Parallel()
+
+		r, m := newRepo(t)
+		m.EXPECT().ListTags(context.Background()).Return(nil, errStub)
+
+		_, err := r.ListTags(context.Background())
+		require.ErrorIs(t, err, errStub)
+	})
+}
+
 // TestRepository_FindByID covers the lookup, including the id -> NotFoundError translation.
 func TestRepository_FindByID(t *testing.T) {
 	t.Parallel()
