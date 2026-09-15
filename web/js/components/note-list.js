@@ -25,13 +25,13 @@ export default {
 
       <div v-if="store.tags.length" class="tag-row">
         <button
-          v-for="tc in store.tags"
-          :key="tc.tag"
+          v-for="tag in store.tags"
+          :key="tag"
           class="tag-chip"
-          :class="{ active: activeTag === tc.tag }"
-          @click="toggleTag(tc.tag)"
+          :class="{ active: activeTag === tag }"
+          @click="toggleTag(tag)"
         >
-          #{{ tc.tag }}
+          #{{ tag }}
         </button>
       </div>
 
