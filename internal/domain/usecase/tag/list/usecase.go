@@ -30,5 +30,11 @@ func (uc *UseCase) Execute(ctx context.Context) (Output, error) {
 		return Output{}, errors.New("Failed to load tags")
 	}
 
+	// Encoded as [] rather than null when there are none, which is what the frontend expects — see
+	// entity.Note.MarshalJSON for the same guard on a note's Tags.
+	if tags == nil {
+		tags = []string{}
+	}
+
 	return Output{Tags: tags}, nil
 }
