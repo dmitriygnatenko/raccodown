@@ -1,10 +1,9 @@
 # Raccodown
 
 Raccodown is a self-hosted Markdown/plain-text note app: a CodeMirror 6 editor with a formatting
-toolbar and a live preview, backed by a Go REST API, with a UI available in five languages. Like
-this author's other Go projects (e.g. raccounting), it's **one binary**: the frontend is embedded
-into it via `go:embed` and served from the same port as the API — no separate frontend process, no
-CORS to configure in production.
+toolbar and a live preview, backed by a Go REST API, with a UI available in five languages. 
+The frontend is embedded into it via `go:embed` and served from the same port as the API — 
+no separate frontend process, no CORS to configure in production.
 
 It's single-user, cookie-authenticated — there's no multi-tenant model, just one signed-in account
 and their notes — with a demo account seeded on first run so a fresh checkout is loggable-into
